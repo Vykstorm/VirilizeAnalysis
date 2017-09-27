@@ -2,6 +2,7 @@
 
 import requests
 from re import findall, match
+from datetime import datetime
 
 class Tweet(dict):
     '''
@@ -140,9 +141,29 @@ class Tweet(dict):
         return hosts
 
 
+    @staticmethod
+    def search_by_id(id):
+        '''
+        Busca un tweet por ID.
+        :return: Devuelve el tweet cuya ID es la que se indica como parámetro, o None si no existe
+        ningún tweet con esa ID.
+        '''
+        return Twitter()._search_tweet_by_id(id)
+
+    @staticmethod
+    def search_by_terms(terms, count = 10, publish_start_date = None, publish_end_date = None):
+        '''
+        Busca tweets en los que se menciona alguno de los términos que se indican como parámetro.
+        :param term: String con los términos a buscar
+        :param count: Parámetro opcional que limita el número de tweets a devolver.
+        :param publish_start_date Si se especifica, buscará tweets publicados a partir de esta fecha.
+        :param: publish_end_date Si se especifica, buscará tweets publicados antes de esta fecha.
+        '''
+        return Twitter()._search_by_terms(terms, count, publish_start_date, publish_end_date)
+
 
     def __str__(self):
-        s = 'Mensaje publicado por {} en la fecha {}:\n'.format(self.get_author(), self.get_timestamp())
+        s = 'Mensaje publicado por {} en la fecha {}:\n'.format(self.get_author(), datetime.fromtimestamp(float(self.get_timestamp())))
         s += '-------\n'
         s += self.get_text() + ' \n'
         s += '-------\n'
@@ -150,3 +171,12 @@ class Tweet(dict):
             s += 'Es un retweet\n' if self.get_type() == 'retweet' else 'Es una respuesta a otro tweet\n'
         s += 'Fue retweeteado {} veces'.format(self.get_num_retweets())
         return s
+
+
+    def __hash__(self):
+        return hash(self.__repr__())
+
+    def __eq__(self, other):
+        return isinstance(other, Tweet) and self.get_id() == other.get_id()
+
+from model.twitter_utils import Twitter
